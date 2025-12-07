@@ -69,6 +69,36 @@ function Paste_before_and_trim()
     end)
 end
 
+-- -----------------------------------------------------------------------------------------------
+-- Custom Function for Smart Tab Navigation
+-- -----------------------------------------------------------------------------------------------
+-- Function to open a file in a new tab, or switch to existing tab if already open
+function Open_in_tab_or_switch(filepath)
+    -- Get the full path of the file to open
+    local target_path = vim.fn.fnamemodify(filepath, ':p')
+    
+    -- Loop through all tabs to check if the file is already open
+    for tabnr = 1, vim.fn.tabpagenr('$') do
+        -- Get all windows in this tab
+        local buflist = vim.fn.tabpagebuflist(tabnr)
+        
+        -- Check each buffer in this tab
+        for _, bufnr in ipairs(buflist) do
+            -- Get the full path of this buffer
+            local buf_path = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':p')
+            
+            -- If we found the file, switch to that tab and return
+            if buf_path == target_path then
+                vim.cmd('tabn ' .. tabnr)
+                return
+            end
+        end
+    end
+    
+    -- If we get here, the file isn't open in any tab, so open it in a new tab
+    vim.cmd('tabnew ' .. vim.fn.fnameescape(filepath))
+end
+
 -- Disable netrw, the default file explorer, to use nvim-tree instead
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -197,7 +227,31 @@ require("lazy").setup(plugins, {})
 
 -- --- Telescope ---
 local telescope = require('telescope')
+local telescope_actions = require('telescope.actions')
+
 telescope.setup({
+  defaults = {
+    mappings = {
+      i = {
+        -- Override the default <CR> (Enter) action in insert mode
+        -- to use our custom tab-opening function
+        ["<CR>"] = function(prompt_bufnr)
+          local selection = require('telescope.actions.state').get_selected_entry()
+          require('telescope.actions').close(prompt_bufnr)
+          -- Call our custom function with the selected file path
+          Open_in_tab_or_switch(selection.path or selection.filename)
+        end,
+      },
+      n = {
+        -- Override the default <CR> (Enter) action in normal mode
+        ["<CR>"] = function(prompt_bufnr)
+          local selection = require('telescope.actions.state').get_selected_entry()
+          require('telescope.actions').close(prompt_bufnr)
+          Open_in_tab_or_switch(selection.path or selection.filename)
+        end,
+      },
+    },
+  },
   extensions = {
     fzf = {
       fuzzy = true,
@@ -208,6 +262,47 @@ telescope.setup({
   },
 })
 telescope.load_extension('fzf')
+
+-- --- nvim-tree (File Explorer) ---
+require("nvim-tree").setup({
+  actions = {
+    open_file = {
+      -- Quit nvim-tree when opening a file (optional, set to false if you want to keep it open)
+      quit_on_open = false,
+      -- This is the key setting: define a custom action for opening files
+      window_picker = {
+        enable = false,
+      },
+    },
+  },
+  on_attach = function(bufnr)
+    local api = require('nvim-tree.api')
+    
+    -- Default mappings
+    api.config.mappings.default_on_attach(bufnr)
+    
+    -- Override the default open action with our custom function
+    vim.keymap.set('n', '<CR>', function()
+      local node = api.tree.get_node_under_cursor()
+      if node and node.type == 'file' then
+        Open_in_tab_or_switch(node.absolute_path)
+      elseif node and node.type == 'directory' then
+        -- For directories, use the default toggle behavior
+        api.node.open.edit()
+      end
+    end, { buffer = bufnr, noremap = true, silent = true, desc = 'Open in new tab or switch' })
+    
+    -- You can also override 'o' if you want
+    vim.keymap.set('n', 'o', function()
+      local node = api.tree.get_node_under_cursor()
+      if node and node.type == 'file' then
+        Open_in_tab_or_switch(node.absolute_path)
+      elseif node and node.type == 'directory' then
+        api.node.open.edit()
+      end
+    end, { buffer = bufnr, noremap = true, silent = true, desc = 'Open in new tab or switch' })
+  end,
+})
 
 -- --- nvim-cmp (Autocompletion) ---
 local cmp = require('cmp')
@@ -278,11 +373,10 @@ end
 require('mason').setup()
 require('mason-lspconfig').setup()
 
-local servers = { 'lua_ls', 'pyright', 'gopls', 'tsserver', 'rust_analyzer' }
+local servers = { 'lua_ls', 'pyright', 'gopls', 'tsserver', 'rust_analyzer','clangd'}
 
 for _, lsp in ipairs(servers) do
   lspconfig[lsp].setup {
     on_attach = on_attach,
   }
 end
-
