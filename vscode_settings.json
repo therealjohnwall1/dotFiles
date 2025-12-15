@@ -1,0 +1,192 @@
+{
+  "vim.leader": "<Space>",
+  "vim.hlsearch": true,
+  "vim.normalModeKeyBindingsNonRecursive": [
+    // NAVIGATION
+    // switch b/w buffers
+    { "before": ["<S-h>"], "commands": [":bprevious"] },
+    { "before": ["<S-l>"], "commands": [":bnext"] },
+
+    // splits
+    { "before": ["leader", "v"], "commands": [":vsplit"] },
+    { "before": ["leader", "s"], "commands": [":split"] },
+
+    // panes
+    {
+      "before": ["leader", "h"],
+      "commands": ["workbench.action.focusLeftGroup"]
+    },
+    // hop between opened screens
+    { "before": ["leader", "1"], "commands": ["workbench.action.focusPreviousGroup"] },
+    {
+      "before": ["leader", "j"],
+      "commands": ["workbench.action.focusBelowGroup"]
+    },
+    {
+      "before": ["leader", "k"],
+      "commands": ["workbench.action.focusAboveGroup"]
+    },
+    {
+      "before": ["leader", "l"],
+      "commands": ["workbench.action.focusRightGroup"]
+    },
+    // NICE TO HAVE
+    { "before": ["leader", "w"], "commands": [":w!"] },
+    { "before": ["leader", "q"], "commands": [":q!"] },
+    { "before": ["leader", "x"], "commands": [":x!"] },
+    {
+      "before": ["[", "d"],
+      "commands": ["editor.action.marker.prev"]
+    },
+    {
+      "before": ["]", "d"],
+      "commands": ["editor.action.marker.next"]
+    },
+    {
+      "before": ["<leader>", "c", "a"],
+      "commands": ["editor.action.quickFix"]
+    },
+    { "before": ["leader", "f"], "commands": ["workbench.action.quickOpen"] },
+    { "before": ["leader", "p"], "commands": ["editor.action.formatDocument"] },
+    {
+      "before": ["g", "h"],
+      "commands": ["editor.action.showDefinitionPreviewHover"]
+    },
+    // File tree
+    {"before":["leader", "n", "e"],
+    "commands":["workbench.explorer.fileView.focus"]
+    },
+    // co pilot
+    {
+      "before": ["<C-i>"],
+      "commands": ["interactiveEditor.start"] 
+    },
+    { "before": ["leader", "c"], "commands": ["editor.action.commentLine"] },
+    {
+      "before": ["leader", "t"],
+      "commands": ["workbench.action.terminal.focus"],
+      "when": "!terminalFocus"
+    },
+    {
+      "before": ["leader", "t"],
+      "commands": ["workbench.action.terminal.toggleTerminal"],
+      "when": "terminalFocus"
+    },
+    // HOP BETWEEN OPENED FILES
+    { "before": ["leader", "1"], "commands": ["workbench.action.focusFirstEditorGroup"] },
+    { "before": ["leader", "2"], "commands": ["workbench.action.focusSecondEditorGroup"] },
+    { "before": ["leader", "3"], "commands": ["workbench.action.focusThirdEditorGroup"] },
+    { "before": ["leader", "4"], "commands": ["workbench.action.focusFourthEditorGroup"] },
+    { "before": ["leader", "5"], "commands": ["workbench.action.focusFifthEditorGroup"] },
+    { "before": ["leader", "6"], "commands": ["workbench.action.focusSixthEditorGroup"] },
+    { "before": ["leader", "7"], "commands": ["workbench.action.focusSeventhEditorGroup"] },
+    { "before": ["leader", "8"], "commands": ["workbench.action.focusEighthEditorGroup"] },
+    { "before": ["leader", "9"], "commands": ["workbench.action.focusNinthEditorGroup"] },
+
+   { "terminal.integrated.commandsToSkipShell": [
+
+     "workbench.action.terminal.copySelection",
+     "workbench.action.terminal.paste",
+  ] },
+
+  ],
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        },
+        "Debian (WSL)": {
+            "path": "C:\\Windows\\System32\\wsl.exe",
+            "args": [
+                "-d",
+                "Debian"
+            ]
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Debian (WSL)",
+    "explorer.confirmDelete": false,
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "liveServer.settings.donotShowInfoMsg": true,
+    "editor.inlineSuggest.enabled": true,
+    "github.copilot.enable": {
+      "*": false,
+      "plaintext": false,
+      "markdown": false,
+      "scminput": false,
+      "yaml": false
+    },
+    "githubPullRequests.pullBranch": "never",
+    "explorer.confirmDragAndDrop": false,
+    "terminal.integrated.allowMnemonics": true,
+    "cmake.configureOnOpen": true,
+    "workbench.colorCustomizations": {
+      "terminal.ansiBrightBlack": "#cdd7d7",
+      "terminal.ansiBrightBlue": "#cdd7d7",
+      "terminal.ansiBrightRed": "#cdd7d7",
+      "terminal.ansiBrightWhite": "#ffffff",
+      "list.focusBackground": "#ff0000",
+      "terminal.integrated.panel.location": "right",
+      "terminal.background": "#00000000"
+    },
+    "workbench.colorTheme": "Solarized Light",
+    "terminal.integrated.env.linux": {
+
+    },
+    "git.openRepositoryInParentFolders": "never",
+    "editor.largeFileOptimizations": false,
+    "remote.autoForwardPortsSource": "hybrid",
+    "workbench.editor.editorActionsLocation": "hidden",
+    "jupyter.askForKernelRestart": false,
+    "git.confirmSync": false,
+    "workbench.startupEditor": "none",
+    "liveServer.settings.donotVerifyTags": true,
+    "svelte.enable-ts-plugin": true,
+    "cmake.showOptionsMovedNotification": false,
+    "editor.lineNumbers": "relative",
+    "web-CAT.submitURLs": [
+        "https://web-cat.cs.vt.edu/Web-CAT/WebObjects/Web-CAT.woa/wa/assignments/eclipse?institution=SJSU"
+    ],
+    "glassit.alpha": 250,
+    "react-native-tools.showUserTips": false,
+    "github.copilot.editor.enableAutoCompletions": true,
+    "editor.accessibilitySupport": "off",
+    "cmake.pinnedCommands": [
+      "workbench.action.tasks.configureTaskRunner",
+      "workbench.action.tasks.runTask"
+    ],
+    "editor.minimap.enabled": false,
+    "remote.SSH.remotePlatform": {
+      "76.133.0.209": "linux",
+      "platon.mooo.com": "linux",
+      "ec2_dirt": "linux",
+      "envy": "linux",
+      "100.64.178.31": "linux",
+      "piserver": "linux"
+    },
+    "workbench.editorAssociations": {
+      "*.copilotmd": "vscode.markdown.preview.editor",
+      "*.pdf": "pdf.preview"
+    },
+    "workbench.editorLargeFileConfirmation": 1000,
+    "terminal.integrated.gpuAcceleration": "off",
+    "window.titleBarStyle": "custom",
+    "workbench.preferredDarkColorTheme": "Gruvbox Glass",
+    "window.autoDetectColorScheme": true,
+    "workbench.preferredLightColorTheme": "Solarized Light",
+    "python.analysis.typeCheckingMode": "standard",
+    "workbench.secondarySideBar.defaultVisibility": "hidden",
+    "mdb.mcp.server": "prompt"
+}
