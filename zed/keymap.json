@@ -1,0 +1,173 @@
+[
+  // ============================================
+  // NORMAL MODE BINDINGS (from VSCode vim config)
+  // ============================================
+  {
+    "context": "vim_mode == normal && !menu",
+    "bindings": {
+      // BUFFER NAVIGATION
+      // Switch between buffers (tabs)
+      "shift-h": "pane::ActivatePreviousItem",
+      "shift-l": "pane::ActivateNextItem",
+
+      // SPLITS
+      // Create vertical split (side by side)
+      "space v": "pane::SplitRight",
+      // Create horizontal split (stacked)
+      "space s": "pane::SplitDown",
+
+      // PANE NAVIGATION
+      // Move focus between panes
+      "space h": "workspace::ActivatePaneLeft",
+      "space j": "workspace::ActivatePaneDown",
+      "space k": "workspace::ActivatePaneUp",
+      "space l": "workspace::ActivatePaneRight",
+
+      // FILE OPERATIONS
+      // Save file
+      "space w": "workspace::Save",
+      // Close buffer/tab
+      "space q": "pane::CloseActiveItem",
+      // Save and close (using SendKeystrokes to chain actions)
+      "space x": ["workspace::SendKeystrokes", ": x enter"],
+
+      // DIAGNOSTICS NAVIGATION
+      // Go to previous diagnostic (already default in Zed vim: [ d)
+      "[ d": "editor::GoToPreviousDiagnostic",
+      // Go to next diagnostic (already default in Zed vim: ] d)
+      "] d": "editor::GoToDiagnostic",
+
+      // CODE ACTIONS
+      // Open quick fix / code actions menu
+      "space c a": "editor::ToggleCodeActions",
+
+      // FILE FINDER
+      // Open file finder (like VSCode quick open)
+      "space f": "file_finder::Toggle",
+
+      // FORMATTING
+      // Format document
+      "space p": "editor::Format",
+
+      // HOVER / DOCUMENTATION
+      // Show definition preview hover (already default: g h)
+      "g h": "editor::Hover",
+
+      // PROJECT PANEL / FILE TREE
+      // Focus file tree
+      "space n e": "project_panel::ToggleFocus",
+      // Alternative: toggle left dock (shows/hides panel)
+      "space e": "workspace::ToggleLeftDock",
+
+      // COMMENTS
+      // Toggle line comment (Zed vim default is gcc, this adds space c)
+      "space c": "editor::ToggleComments",
+
+      // TERMINAL
+      // Toggle terminal focus
+      "space t": "terminal_panel::ToggleFocus",
+
+      // PANE ACTIVATION BY NUMBER
+      // Focus specific editor panes (1-9)
+      "space 1": ["workspace::ActivatePane", 0],
+      "space 2": ["workspace::ActivatePane", 1],
+      "space 3": ["workspace::ActivatePane", 2],
+      "space 4": ["workspace::ActivatePane", 3],
+      "space 5": ["workspace::ActivatePane", 4],
+      "space 6": ["workspace::ActivatePane", 5],
+      "space 7": ["workspace::ActivatePane", 6],
+      "space 8": ["workspace::ActivatePane", 7],
+      "space 9": ["workspace::ActivatePane", 8],
+    },
+  },
+
+  // ============================================
+  // VISUAL MODE BINDINGS
+  // ============================================
+  {
+    "context": "vim_mode == visual && !menu",
+    "bindings": {
+      // Comments in visual mode
+      "space c": "editor::ToggleComments",
+    },
+  },
+
+  // ============================================
+  // TERMINAL PANEL - escape back to editor
+  // ============================================
+  {
+    "context": "Terminal",
+    "bindings": {
+      // Toggle terminal (when already in terminal, this will toggle focus back)
+      "ctrl-`": "workspace::ToggleBottomDock",
+      // Alternative way to get back to editor from terminal
+      "ctrl-shift-`": "terminal_panel::ToggleFocus",
+    },
+  },
+
+  // ============================================
+  // PROJECT PANEL (File Tree) VIM-LIKE NAVIGATION
+  // ============================================
+  {
+    "context": "ProjectPanel && not_editing",
+    "bindings": {
+      // Navigate with hjkl (some already default in Zed)
+      "h": "project_panel::CollapseSelectedEntry",
+      "l": "project_panel::ExpandSelectedEntry",
+      // Open file
+      "o": "project_panel::Open",
+      // Open in split
+      "enter": "project_panel::Open",
+      // Create new file
+      "a": "project_panel::NewFile",
+      // Create new directory
+      "shift-a": "project_panel::NewDirectory",
+      // Rename
+      "r": "project_panel::Rename",
+      // Delete
+      "d": "project_panel::Trash",
+      // Copy
+      "y": "project_panel::Copy",
+      // Paste
+      "p": "project_panel::Paste",
+      // Cut
+      "x": "project_panel::Cut",
+    },
+  },
+
+  // ============================================
+  // GLOBAL WORKSPACE BINDINGS
+  // ============================================
+  {
+    "context": "Workspace",
+    "bindings": {
+      // Toggle project panel with ctrl-b (like your preference)
+      "ctrl-b": "workspace::ToggleLeftDock",
+    },
+  },
+
+  // ============================================
+  // INSERT MODE - Inline AI Assistant
+  // (ctrl-i for AI assist like VSCode copilot)
+  // ============================================
+  {
+    "context": "vim_mode == insert",
+    "bindings": {
+      // Open inline AI assistant (similar to VSCode's interactiveEditor.start)
+      "ctrl-i": "assistant::InlineAssist",
+    },
+  },
+
+  // ============================================
+  // DOCK NAVIGATION (navigate to/from panels)
+  // ============================================
+  {
+    "context": "Dock",
+    "bindings": {
+      "ctrl-w h": "workspace::ActivatePaneLeft",
+      "ctrl-w l": "workspace::ActivatePaneRight",
+      "ctrl-w k": "workspace::ActivatePaneUp",
+      "ctrl-w j": "workspace::ActivatePaneDown",
+    },
+  },
+]

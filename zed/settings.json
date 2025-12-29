@@ -1,0 +1,68 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "agent": {
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-5-latest"
+    },
+    "model_parameters": []
+  },
+  "disable_ai": false,
+  "features": {
+    "edit_prediction_provider": "zed",
+  },
+  "project_panel": {
+    "hide_hidden": true,
+  },
+  "edit_predictions": {
+    "mode": "subtle",
+  },
+  "terminal": {
+    "font_family": "Adwaita Mono",
+    "dock": "bottom",
+    "env": {},
+  },
+  "base_keymap": "VSCode",
+  "tab_bar": {
+    "show_tab_bar_buttons": false,
+  },
+  "relative_line_numbers": "enabled",
+  "gutter": {
+    "line_numbers": true,
+  },
+  "minimap": {
+    "show": "never",
+  },
+  "show_edit_predictions": false,
+  "vim_mode": true,
+  "ssh_connections": [
+    {
+      "host": "platon.mooo.com",
+      "username": "mechanism",
+      "port": 7022,
+      "args": ["-A"],
+      "projects": [
+        {
+          "paths": ["/home/mechanism"],
+        },
+        {
+          "paths": ["/home/mechanism/suas_stuff"],
+        },
+      ],
+    },
+  ],
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "system",
+    "light": "Gruvbox Light",
+    "dark": "Gruvbox Dark Soft",
+  },
+}
