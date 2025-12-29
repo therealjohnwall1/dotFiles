@@ -1,0 +1,463 @@
+-- ~/.config/nvim/init.lua
+
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- -----------------------------------------------------------------------------------------------
+-- Basic Editor Settings
+-- -----------------------------------------------------------------------------------------------
+vim.g.mapleader = " " -- Set the <leader> key to spacebar
+vim.opt.number = true         -- Show line numbers
+vim.opt.relativenumber = true -- Show relative line numbers
+vim.opt.hlsearch = true       -- Highlight search results
+vim.opt.ignorecase = true     -- Ignore case when searching
+vim.opt.smartcase = true      -- ...unless the search term contains uppercase letters
+vim.opt.tabstop = 2           -- Tabs are 2 spaces
+vim.opt.shiftwidth = 2        -- Indents are 2 spaces
+vim.opt.expandtab = true      -- Use spaces instead of tabs
+vim.opt.termguicolors = true  -- Enable true color support
+vim.opt.wrap = false          -- Do not wrap lines
+vim.opt.mouse = "a"           -- Enable mouse support in all modes
+
+vim.g.clipboard = {
+  name = 'cliphist',
+  copy = {
+    ['+'] = 'wl-copy',
+    ['*'] = 'wl-copy',
+  },
+  paste = {
+    ['+'] = 'wl-paste',
+    ['*'] = 'wl-paste',
+  },
+  cache_enabled = 0,
+}
+
+-- Use system clipboard by default
+vim.opt.clipboard = 'unnamedplus'
+
+-- -----------------------------------------------------------------------------------------------
+-- Custom Functions for Pasting
+-- -----------------------------------------------------------------------------------------------
+-- Function to remove trailing whitespace and carriage returns (^M) from the buffer
+local function Trim()
+    local save = vim.fn.winsaveview()
+    -- keeppatterns: Don't add the search pattern to history
+    -- %s/.../.../: Substitute across the whole file
+    -- \\s\\+$: Find whitespace at the end of a line
+    -- \\|: OR
+    -- \\r$: Find a carriage return at the end of a line
+    -- //: Replace with nothing
+    -- e: Suppress errors if no match is found
+    vim.cmd("keeppatterns %s/\\s\\+$\\|\\r$//e")
+    vim.fn.winrestview(save)
+end
+
+-- Function to paste AFTER the cursor and then trim the buffer
+function Paste_after_and_trim()
+    -- Perform the default paste action for 'p'
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('p', true, false, true), 'n', false)
+    -- Schedule the trim function to run after the paste is complete
+    vim.schedule(function()
+        Trim()
+    end)
+end
+
+-- Function to paste BEFORE the cursor and then trim the buffer
+function Paste_before_and_trim()
+    -- Perform the default paste action for 'P'
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('P', true, false, true), 'n', false)
+    -- Schedule the trim function to run after the paste is complete
+    vim.schedule(function()
+        Trim()
+    end)
+end
+
+-- -----------------------------------------------------------------------------------------------
+-- Custom Functions for Clipcat Integration
+-- -----------------------------------------------------------------------------------------------
+-- Function to open clipcat menu with rofi and paste the selected clip
+function Clipcat_paste()
+  -- Run clipcat-menu to select a clip and insert it into clipboard
+  vim.fn.system('clipcat-menu --finder=rofi insert')
+
+  -- Small delay to ensure clipcat has updated the clipboard
+  vim.defer_fn(function()
+    -- Get the clipboard content
+    local clip = vim.fn.getreg('+')
+
+    if clip and clip ~= '' then
+      -- Get current mode
+      local mode = vim.api.nvim_get_mode().mode
+
+      if mode == 'n' then
+        -- In normal mode, paste after cursor
+        vim.cmd('normal! "+p')
+      elseif mode == 'i' then
+        -- In insert mode, insert at cursor
+        vim.api.nvim_put(vim.split(clip, '\n'), 'c', false, true)
+      elseif mode == 'v' or mode == 'V' then
+        -- In visual mode, replace selection
+        vim.cmd('normal! gv"+p')
+      end
+    end
+  end, 100)
+end
+
+-- Function to remove selected clip from clipcat history
+function Clipcat_remove()
+  vim.fn.system('clipcat-menu --finder=rofi remove')
+end
+
+-- Function to edit selected clip from clipcat history
+function Clipcat_edit()
+  vim.fn.system('clipcat-menu --finder=rofi edit')
+end
+
+-- -----------------------------------------------------------------------------------------------
+-- Custom Function for Smart Tab Navigation
+-- -----------------------------------------------------------------------------------------------
+-- Function to open a file in a new tab, or switch to existing tab if already open
+function Open_in_tab_or_switch(filepath)
+    -- Get the full path of the file to open
+    local target_path = vim.fn.fnamemodify(filepath, ':p')
+
+    -- Loop through all tabs to check if the file is already open
+    for tabnr = 1, vim.fn.tabpagenr('$') do
+        -- Get all windows in this tab
+        local buflist = vim.fn.tabpagebuflist(tabnr)
+
+        -- Check each buffer in this tab
+        for _, bufnr in ipairs(buflist) do
+            -- Get the full path of this buffer
+            local buf_path = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':p')
+
+            -- If we found the file, switch to that tab and return
+            if buf_path == target_path then
+                vim.cmd('tabn ' .. tabnr)
+                return
+            end
+        end
+    end
+
+    -- If we get here, the file isn't open in any tab, so open it in a new tab
+    vim.cmd('tabnew ' .. vim.fn.fnameescape(filepath))
+end
+
+-- Disable netrw, the default file explorer, to use nvim-tree instead
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+
+-- -----------------------------------------------------------------------------------------------
+-- Keymaps
+-- -----------------------------------------------------------------------------------------------
+vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Find Files" })
+vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Live Grep" })
+vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "Find Buffers" })
+vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Help Tags" })
+vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle File Explorer" })
+
+-- Clipcat integration keymaps
+vim.keymap.set({'n', 'i', 'v'}, '<leader>cp', '<Cmd>lua Clipcat_paste()<CR>', { desc = "Paste from clipcat history (rofi)" })
+vim.keymap.set('n', '<leader>cr', '<Cmd>lua Clipcat_remove()<CR>', { desc = "Remove from clipcat history (rofi)" })
+vim.keymap.set('n', '<leader>ce', '<Cmd>lua Clipcat_edit()<CR>', { desc = "Edit clip from clipcat history (rofi)" })
+
+-- Override default paste to remove carriage returns (^M)
+vim.keymap.set("n", "p", "<Cmd>lua Paste_after_and_trim()<CR>", { desc = "Paste and remove carriage returns" })
+vim.keymap.set("n", "P", "<Cmd>lua Paste_before_and_trim()<CR>", { desc = "Paste (before) and remove carriage returns" })
+
+vim.keymap.set({'n', 'v'}, '<Leader>l', ':tabnext<CR>', { silent = true, desc = "Go to next tab" })
+vim.keymap.set({'n', 'v'}, '<Leader>h', ':tabprevious<CR>', { silent = true, desc = "Go to previous tab" })
+
+
+-- -----------------------------------------------------------------------------------------------
+-- Plugin Definitions
+-- -----------------------------------------------------------------------------------------------
+local plugins = {
+   -- Colorscheme: Gruvbox
+  {
+    "ellisonleao/gruvbox.nvim",
+    priority = 1000, -- Make sure to load this before all the other start plugins
+    config = function()
+      -- This is where you configure and apply the colorscheme
+      local theme_mode = os.getenv("NVIM_THEME") or "dark"
+
+      if theme_mode == "light" then
+        vim.o.background = "light"
+      else
+        vim.o.background = "dark"
+      end
+
+      -- For more configuration options, see the plugin's documentation
+      -- require("gruvbox").setup({
+      --   -- your settings go here
+      -- })
+
+      -- Apply the colorscheme
+      vim.cmd.colorscheme "gruvbox"
+    end,
+  },
+
+  -- Syntax Highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+  },
+
+  -- Fuzzy Finding with Telescope
+  {
+    "nvim-telescope/telescope.nvim",
+    tag = "0.1.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+    },
+  },
+
+  -- Autocompletion
+  {
+    'hrsh7th/nvim-cmp',
+    dependencies = {
+      'hrsh7th/cmp-nvim-lsp',
+      'hrsh7th/cmp-buffer',
+      'hrsh7th/cmp-path',
+      'saadparwaiz1/cmp_luasnip',
+    }
+  },
+
+  -- Snippets
+  { 'L3MON4D3/LuaSnip', version = "v2.*", build = "make install_jsregexp" },
+
+  -- File Explorer
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("nvim-tree").setup({})
+    end,
+  },
+
+  -- LSP (Language Server Protocol)
+  { "neovim/nvim-lspconfig" },
+  { "williamboman/mason.nvim" },
+  { "williamboman/mason-lspconfig.nvim" },
+
+	{
+  '4e554c4c/darkman.nvim',
+  event = 'VimEnter',
+  build = 'go build -o bin/darkman.nvim',
+  opts = {
+    -- configuration here
+  },
+}
+
+}
+
+
+-- -----------------------------------------------------------------------------------------------
+-- Load Plugins
+-- -----------------------------------------------------------------------------------------------
+require("lazy").setup(plugins, {})
+
+
+-- -----------------------------------------------------------------------------------------------
+-- Plugin Configurations
+-- -----------------------------------------------------------------------------------------------
+
+-- --- Telescope ---
+local telescope_ok, telescope = pcall(require, 'telescope')
+if telescope_ok then
+  local telescope_actions = require('telescope.actions')
+
+  telescope.setup({
+  defaults = {
+    mappings = {
+      i = {
+        -- Override the default <CR> (Enter) action in insert mode
+        -- to use our custom tab-opening function
+        ["<CR>"] = function(prompt_bufnr)
+          local selection = require('telescope.actions.state').get_selected_entry()
+          require('telescope.actions').close(prompt_bufnr)
+          -- Call our custom function with the selected file path
+          Open_in_tab_or_switch(selection.path or selection.filename)
+        end,
+      },
+      n = {
+        -- Override the default <CR> (Enter) action in normal mode
+        ["<CR>"] = function(prompt_bufnr)
+          local selection = require('telescope.actions.state').get_selected_entry()
+          require('telescope.actions').close(prompt_bufnr)
+          Open_in_tab_or_switch(selection.path or selection.filename)
+        end,
+      },
+    },
+  },
+  extensions = {
+    fzf = {
+      fuzzy = true,
+      override_generic_sorter = true,
+      override_file_sorter = true,
+      case_mode = "smart_case",
+    },
+  },
+})
+telescope.load_extension('fzf')
+end
+
+-- --- nvim-treesitter (Syntax Highlighting) ---
+local treesitter_ok, treesitter_configs = pcall(require, 'nvim-treesitter.configs')
+if treesitter_ok then
+  treesitter_configs.setup({
+    ensure_installed = { "c", "lua", "vim", "vimdoc", "query", "python", "javascript", "typescript", "rust", "go" },
+    sync_install = false,
+    auto_install = true,
+    highlight = { enable = true },
+  })
+end
+
+-- --- nvim-tree (File Explorer) ---
+local nvimtree_ok, nvimtree = pcall(require, 'nvim-tree')
+if nvimtree_ok then
+  nvimtree.setup({
+  actions = {
+    open_file = {
+      -- Quit nvim-tree when opening a file (optional, set to false if you want to keep it open)
+      quit_on_open = false,
+      -- This is the key setting: define a custom action for opening files
+      window_picker = {
+        enable = false,
+      },
+    },
+  },
+  on_attach = function(bufnr)
+    local api = require('nvim-tree.api')
+
+    -- Default mappings
+    api.config.mappings.default_on_attach(bufnr)
+
+    -- Override the default open action with our custom function
+    vim.keymap.set('n', '<CR>', function()
+      local node = api.tree.get_node_under_cursor()
+      if node and node.type == 'file' then
+        Open_in_tab_or_switch(node.absolute_path)
+      elseif node and node.type == 'directory' then
+        -- For directories, use the default toggle behavior
+        api.node.open.edit()
+      end
+    end, { buffer = bufnr, noremap = true, silent = true, desc = 'Open in new tab or switch' })
+
+    -- You can also override 'o' if you want
+    vim.keymap.set('n', 'o', function()
+      local node = api.tree.get_node_under_cursor()
+      if node and node.type == 'file' then
+        Open_in_tab_or_switch(node.absolute_path)
+      elseif node and node.type == 'directory' then
+        api.node.open.edit()
+      end
+    end, { buffer = bufnr, noremap = true, silent = true, desc = 'Open in new tab or switch' })
+  end,
+})
+end
+
+-- --- nvim-cmp (Autocompletion) ---
+local cmp_ok, cmp = pcall(require, 'cmp')
+local luasnip_ok, luasnip = pcall(require, 'luasnip')
+
+if cmp_ok and luasnip_ok then
+  cmp.setup({
+  snippet = {
+    expand = function(args)
+      luasnip.lsp_expand(args.body)
+    end,
+  },
+  mapping = cmp.mapping.preset.insert({
+    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+    ['<C-f>'] = cmp.mapping.scroll_docs(4),
+    ['<C-Space>'] = cmp.mapping.complete(),
+    ['<C-e>'] = cmp.mapping.abort(),
+    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif luasnip.expand_or_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      elseif luasnip.jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+  }),
+  sources = cmp.config.sources({
+    { name = 'nvim_lsp' },
+    { name = 'luasnip' },
+    { name = 'buffer' },
+    { name = 'path' },
+  })
+})
+end
+
+-- --- LSP (Language Server Protocol) ---
+local lspconfig_ok, lspconfig = pcall(require, 'lspconfig')
+local mason_ok, mason = pcall(require, 'mason')
+local mason_lspconfig_ok, mason_lspconfig = pcall(require, 'mason-lspconfig')
+
+if not (lspconfig_ok and mason_ok and mason_lspconfig_ok) then
+  return
+end
+
+local on_attach = function(client, bufnr)
+  -- This function runs when an LSP server attaches to a buffer.
+  -- It creates keymaps that are only active for that buffer.
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+  vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+  vim.keymap.set('n', '<leader>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+  vim.keymap.set('n', '<leader>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+  vim.keymap.set('n', '<leader>wl', function()
+    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  end, bufopts)
+  vim.keymap.set('n', '<leader>D', vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
+  vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+  vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+end
+
+mason.setup()
+mason_lspconfig.setup({
+  ensure_installed = { 'lua_ls', 'pyright', 'gopls', 'rust_analyzer', 'clangd' },
+  automatic_installation = true,
+})
+
+-- Setup LSP servers automatically after Mason installs them
+if mason_lspconfig.setup_handlers then
+  mason_lspconfig.setup_handlers({
+    -- Default handler for all servers
+    function(server_name)
+      lspconfig[server_name].setup({
+        on_attach = on_attach,
+      })
+    end,
+  })
+end
