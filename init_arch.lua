@@ -179,6 +179,14 @@ vim.keymap.set("n", "P", "<Cmd>lua Paste_before_and_trim()<CR>", { desc = "Paste
 vim.keymap.set({'n', 'v'}, '<Leader>l', ':tabnext<CR>', { silent = true, desc = "Go to next tab" })
 vim.keymap.set({'n', 'v'}, '<Leader>h', ':tabprevious<CR>', { silent = true, desc = "Go to previous tab" })
 
+vim.keymap.set("n", "<leader>dd", "<cmd>Telescope diagnostics bufnr=0<cr>", { desc = "Buffer Diagnostics" })
+
+-- List all diagnostics in the entire workspace/project
+vim.keymap.set("n", "<leader>dw", "<cmd>Telescope diagnostics<cr>", { desc = "Project Diagnostics" })
+
+vim.keymap.set("n", "<leader>t", function()
+  vim.diagnostic.setloclist()
+end, { desc = "Open diagnostics in bottom split" })
 
 -- -----------------------------------------------------------------------------------------------
 -- Plugin Definitions
@@ -441,9 +449,12 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, bufopts)
   vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
-  vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, bufopts)
-end
+  vim.keymap.set('n', '<leader>fa', function() vim.lsp.buf.format { async = true } end, bufopts)
 
+end
+vim.api.nvim_create_user_command('Format', function()
+  vim.lsp.buf.format({ async = true })
+end, {})
 mason.setup()
 mason_lspconfig.setup({
   ensure_installed = { 'lua_ls', 'pyright', 'gopls', 'rust_analyzer', 'clangd' },
